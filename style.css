@@ -1,0 +1,134 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #1e1e1e;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#calculator {
+    background-color: #2d2d30;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    width: 300px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#display {
+    width: 100%;
+    height: 100px;
+    background-color: #222; 
+    color: white; 
+    font-family: 'Arial', sans-serif;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px; 
+    margin-bottom: 20px;
+    box-shadow: inset 0px -4px 8px rgba(0, 0, 0, 0.5); 
+}
+
+#equation {
+    font-size: 1rem;
+    text-align: left; 
+    overflow: hidden; 
+    white-space: nowrap;
+    text-overflow: ellipsis; 
+}
+
+#result {
+    font-size: 1.5rem; 
+    text-align: right; 
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+
+#keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    width: 100%;
+}
+
+.button {
+    background-color: #3c3c3c;
+    color: white;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 8px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+
+.button:hover {
+    background-color: #454545;
+    transform: translateY(-2px);
+}
+
+
+.button:active {
+    background-color: #555;
+    transform: translateY(1px);
+}
+
+
+.operator {
+    background-color: #6264a7;
+    color: #fff;
+}
+
+#clear {
+    background-color: crimson;
+    color: white;
+}
+
+#delete {
+    background-color: crimson;
+    color: white;
+}
+
+#equals {
+    background-color: #4caf50;
+    color: white;
+}
+
+#decimal {
+    background-color: #6264a7;
+    color: white;
+}
+
+
+.wide {
+    grid-column: span 2;
+}
+
+
+@media (max-width: 320px) {
+    #calculator {
+        width: 100%;
+        padding: 10px;
+    }
+    .display {
+        font-size: 1.5rem;
+        height: 50px;
+    }
+    .button {
+        font-size: 1rem;
+        height: 50px;
+    }
+}
