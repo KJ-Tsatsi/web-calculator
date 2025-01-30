@@ -18,20 +18,20 @@ class Calculator {
     }
 
     appendValue(value) {
-        if (this.equation === '' && ['+', '*', '/'].includes(value)) {
+        if (this.equation === '' && ['+', '*', '/', '^'].includes(value)) {
             return;
         }
     
         const lastChar = this.equation.slice(-1);
     
-        if (['+', '-', '*', '/'].includes(value)) {
-            if (['+', '-', '*', '/'].includes(lastChar)) {
+        if (['+', '-', '*', '/', '^'].includes(value)) {
+            if (['+', '-', '*', '/', '^'].includes(lastChar)) {
                 return;
             }
         }
     
         if (value === '.') {
-            const parts = this.equation.split(/[\+\-\*\/]/);
+            const parts = this.equation.split(/[\+\-\*\/\^]/);
             const lastNumber = parts[parts.length - 1];
     
             if (lastNumber.includes('.')) {
@@ -54,7 +54,7 @@ class Calculator {
             formattedExpression = formattedExpression.slice(1);
         }
     
-        const splitExpression = formattedExpression.split(/([+\-*/])/);
+        const splitExpression = formattedExpression.split(/([+\-*/^])/);
     
         if (isNegativeStart) {
             splitExpression[0] = '-' + splitExpression[0];
@@ -92,6 +92,9 @@ class Calculator {
                         return;
                     }
                     result /= nextNum;
+                    break;
+                case '^':
+                    result **= nextNum;
                     break;
                 default:
                     this.resultDisplayElement.textContent = 'Syntax Error';
