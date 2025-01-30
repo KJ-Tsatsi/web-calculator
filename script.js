@@ -18,20 +18,20 @@ class Calculator {
     }
 
     appendValue(value) {
-        if (this.equation === '' && ['+', '*', '/', '^'].includes(value)) {
+        if (this.equation === '' && ['+', 'x', '÷', '^'].includes(value)) {
             return;
         }
     
         const lastChar = this.equation.slice(-1);
     
-        if (['+', '-', '*', '/', '^'].includes(value)) {
-            if (['+', '-', '*', '/', '^'].includes(lastChar)) {
+        if (['+', '-', 'x', '÷', '^'].includes(value)) {
+            if (['+', '-', 'x', '÷', '^'].includes(lastChar)) {
                 return;
             }
         }
     
         if (value === '.') {
-            const parts = this.equation.split(/[\+\-\*\/\^]/);
+            const parts = this.equation.split(/[\+\-\x\÷\^]/);
             const lastNumber = parts[parts.length - 1];
     
             if (lastNumber.includes('.')) {
@@ -54,7 +54,7 @@ class Calculator {
             formattedExpression = formattedExpression.slice(1);
         }
     
-        const splitExpression = formattedExpression.split(/([+\-*/^])/);
+        const splitExpression = formattedExpression.split(/([+\-x÷^])/);
     
         if (isNegativeStart) {
             splitExpression[0] = '-' + splitExpression[0];
@@ -83,10 +83,10 @@ class Calculator {
                 case '-':
                     result -= nextNum;
                     break;
-                case '*':
+                case 'x':
                     result *= nextNum;
                     break;
-                case '/':
+                case '÷':
                     if (nextNum === 0) {
                         this.resultDisplayElement.textContent = 'Error (Div by 0)';
                         return;
