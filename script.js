@@ -1,15 +1,14 @@
 class Calculator {
-
     constructor(equationDisplay, resultDisplay) {
         this.equationDisplayElement = equationDisplay;
         this.resultDisplayElement = resultDisplay;
-        this.equation = '';
+        this.equation = "";
     }
 
     clear() {
-        this.equation = '';
-        this.resultDisplayElement.textContent = '';
-        this.updateDisplay()
+        this.equation = "";
+        this.resultDisplayElement.textContent = "";
+        this.updateDisplay();
     }
 
     delete() {
@@ -18,95 +17,144 @@ class Calculator {
     }
 
     appendValue(value) {
-        if (this.equation === '' && ['+', 'x', '÷', '^'].includes(value)) {
-            return;
-        }
-    
         const lastChar = this.equation.slice(-1);
-    
-        if (['+', '-', 'x', '÷', '^'].includes(value)) {
-            if (['+', '-', 'x', '÷', '^'].includes(lastChar)) {
-                return;
-            }
-        }
-    
-        if (value === '.') {
+        const isOperator = ["+", "-", "x", "÷", "^"].includes(lastChar);
+        const isFunction = ["sin", "cos", "tan", "log", "√", "π", "%"].some(fn => this.equation.endsWith(fn));
+
+        if (value === "!" && (isNaN(lastChar) || lastChar === "")) return;
+
+        if (isOperator && ["+", "-", "x", "÷", "^"].includes(value)) return;
+
+        if (value === ".") {
             const parts = this.equation.split(/[\+\-\x\÷\^]/);
-            const lastNumber = parts[parts.length - 1];
-    
-            if (lastNumber.includes('.')) {
-                return;
-            }
+            if (parts[parts.length - 1].includes(".")) return;
         }
-    
+
+        if (isFunction && ["sin", "cos", "tan", "log", "√", "π", "%"].includes(value)) return;
+
+        if (this.needsImplicitMultiplication(value, lastChar)) {
+            this.equation += "x";
+        }
+
         this.equation += value;
         this.updateDisplay();
     }
-    
 
-    calculate(expression) {
+    calculate() {
+        try {
+            if (!this.equation) throw new Error("Empty expression");
 
-        let formattedExpression = expression;
-        let isNegativeStart = false;
-    
-        if (formattedExpression[0] === '-') {
-            isNegativeStart = true;
-            formattedExpression = formattedExpression.slice(1);
+            let evaluatedExpression = this.processScientificFunctions(this.equation);
+
+            if (this.isStandaloneExpression(evaluatedExpression)) {
+                this.displayResult(evaluatedExpression);
+                return;
+            }
+
+            let formattedExpression = this.normalizeExpression(evaluatedExpression);
+            let result = this.evaluateArithmetic(formattedExpression);
+
+            this.displayResult(result);
+        } catch (error) {
+            this.displayError(error.message);
         }
-    
-        const splitExpression = formattedExpression.split(/([+\-x÷^])/);
-    
-        if (isNegativeStart) {
-            splitExpression[0] = '-' + splitExpression[0];
-        }
-    
-        if (splitExpression.length < 3) {
-            this.resultDisplayElement.textContent = 'Syntax Error';
-            return;
-        }
-    
+    }
+
+    processScientificFunctions(expression) {
+        expression = expression.replace(/π/g, Math.PI);
+
+        expression = expression.replace(/([\+\-])?(sin|cos|tan|√|log)(-?\d+(\.\d+)?)/g, (_, operator, func, num) => {
+            num = parseFloat(num);
+            if (isNaN(num)) throw new Error("Invalid input");
+
+            let result;
+            switch (func) {
+                case "sin": result = Math.sin(this.toRadians(num)); break;
+                case "cos": result = Math.cos(this.toRadians(num)); break;
+                case "tan": result = Math.tan(this.toRadians(num)); break;
+                case "√": result = num < 0 ? "Error" : Math.sqrt(num); break;
+                case "log": result = num <= 0 ? "Error" : Math.log10(num); break;
+                default: throw new Error("Unknown function");
+            }
+
+            return (operator || "") + result;
+        });
+
+        expression = expression.replace(/(\d+)!/g, (_, num) => this.factorial(parseInt(num)));
+
+        expression = expression.replace(/(\d+)%/g, (_, num) => parseFloat(num) / 100);
+
+        return expression;
+    }
+
+    normalizeExpression(expression) {
+        return expression.startsWith("-") ? "0" + expression : expression;
+    }
+
+    evaluateArithmetic(expression) {
+        let splitExpression = expression.split(/([+\-x÷^])/);
+        if (splitExpression.length < 3) throw new Error("Syntax Error");
+
         let result = parseFloat(splitExpression[0]);
-    
+
         for (let i = 1; i < splitExpression.length; i += 2) {
             const operator = splitExpression[i];
             const nextNum = parseFloat(splitExpression[i + 1]);
-    
-            if (isNaN(nextNum)) {
-                this.resultDisplayElement.textContent = 'Syntax Error';
-                return;
-            }
-    
-            switch (operator) {
-                case '+':
-                    result += nextNum;
-                    break;
-                case '-':
-                    result -= nextNum;
-                    break;
-                case 'x':
-                    result *= nextNum;
-                    break;
-                case '÷':
-                    if (nextNum === 0) {
-                        this.resultDisplayElement.textContent = 'Error (Div by 0)';
-                        return;
-                    }
-                    result /= nextNum;
-                    break;
-                case '^':
-                    result **= nextNum;
-                    break;
-                default:
-                    this.resultDisplayElement.textContent = 'Syntax Error';
-                    return;
-            }
+
+            if (isNaN(nextNum)) throw new Error("Syntax Error");
+
+            result = this.performOperation(result, nextNum, operator);
         }
-    
+
+        return result;
+    }
+
+    performOperation(a, b, operator) {
+        switch (operator) {
+            case "+": return a + b;
+            case "-": return a - b;
+            case "x": return a * b;
+            case "÷":
+                if (b === 0) throw new Error("Error: Division by 0");
+                return a / b;
+            case "^": return a ** b;
+            default: throw new Error("Syntax Error");
+        }
+    }
+
+    factorial(n) {
+        if (n < 0) throw new Error("Error: Negative Factorial");
+        return n === 0 ? 1 : n * this.factorial(n - 1);
+    }
+
+    toRadians(degrees) {
+        return degrees * (Math.PI / 180);
+    }
+
+    isStandaloneExpression(expression) {
+        return !/[\+\-\x\÷\^]/.test(expression);
+    }
+
+    needsImplicitMultiplication(currentValue, lastChar) {
+        const isNumber = !isNaN(lastChar) && lastChar !== "";
+        const isOperator = ["+", "-", "x", "÷", "^"].includes(lastChar);
+        const isStart = lastChar === "";
+
+        if (isStart || isOperator) return false;
+
+        return isNumber && ["sin", "cos", "tan", "√", "log", "π"].some(op => currentValue.startsWith(op));
+    }
+
+    displayResult(result) {
         this.resultDisplayElement.textContent = result;
-    }    
+    }
+
+    displayError(message) {
+        this.resultDisplayElement.textContent = message;
+    }
 
     updateDisplay() {
-        this.equationDisplayElement.textContent = this.equation || '';
+        this.equationDisplayElement.textContent = this.equation || "";
     }
 }
 
