@@ -21,15 +21,19 @@ class Calculator {
         const isOperator = ["+", "-", "x", "÷", "^"].includes(lastChar);
         const isFunction = ["sin", "cos", "tan", "log", "√", "π", "%"].some(fn => this.equation.endsWith(fn));
 
+        // Prevent adding factorial if last character is not a number
         if (value === "!" && (isNaN(lastChar) || lastChar === "")) return;
 
+        // Prevent adding multiple consecutive operators
         if (isOperator && ["+", "-", "x", "÷", "^"].includes(value)) return;
 
+        // Prevent adding a second decimal point in the same number
         if (value === ".") {
             const parts = this.equation.split(/[\+\-\x\÷\^]/);
             if (parts[parts.length - 1].includes(".")) return;
         }
 
+        // Prevent adding another function if the last part is already a function
         if (isFunction && ["sin", "cos", "tan", "log", "√", "π", "%"].includes(value)) return;
 
         if (this.needsImplicitMultiplication(value, lastChar)) {
@@ -43,26 +47,39 @@ class Calculator {
     calculate() {
         try {
             if (!this.equation) throw new Error("Empty expression");
-
+    
+            // If the equation consists of only these functions, it's invalid.
+            if (/^(sin|cos|tan|log|√|%)$/.test(this.equation)) {
+                throw new Error("Syntax Error");
+            }
+    
+            // If any function appears at the end and is not followed by a number, it's invalid.
+            if (/(sin|cos|tan|log|√)([+\-x÷^%]*)$/.test(this.equation)) {
+                throw new Error("Syntax Error");
+            }
+    
             let evaluatedExpression = this.processScientificFunctions(this.equation);
-
+    
             if (this.isStandaloneExpression(evaluatedExpression)) {
                 this.displayResult(evaluatedExpression);
                 return;
             }
-
+    
             let formattedExpression = this.normalizeExpression(evaluatedExpression);
             let result = this.evaluateArithmetic(formattedExpression);
-
+    
             this.displayResult(result);
         } catch (error) {
             this.displayError(error.message);
         }
     }
+    
 
     processScientificFunctions(expression) {
         expression = expression.replace(/π/g, Math.PI);
 
+        // Evaluate trigonometric functions (sin, cos, tan), square root (√), and logarithm (log)
+        // Only works if they are followed by a valid number
         expression = expression.replace(/([\+\-])?(sin|cos|tan|√|log)(-?\d+(\.\d+)?)/g, (_, operator, func, num) => {
             num = parseFloat(num);
             if (isNaN(num)) throw new Error("Invalid input");
@@ -142,6 +159,7 @@ class Calculator {
 
         if (isStart || isOperator) return false;
 
+        // Implicit multiplication is needed if a number is followed by a function or π
         return isNumber && ["sin", "cos", "tan", "√", "log", "π"].some(op => currentValue.startsWith(op));
     }
 
